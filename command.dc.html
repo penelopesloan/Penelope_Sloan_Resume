@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+<meta name="robots" content="noindex, nofollow" />
+<title>Job Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Barlow:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+html, body { margin: 0; padding: 0; background: #0B0E14; }
+* { box-sizing: border-box; }
+body { -webkit-font-smoothing: antialiased; }
+a { color: #E5BD5C; text-decoration: none; }
+a:hover { color: #C49223; }
+::selection { background: rgba(196,146,35,0.25); color: #FFFCF5; }
+textarea, input, select { font-family: Barlow, sans-serif; }
+textarea:focus, input:focus, select:focus { outline: 1px solid rgba(196,146,35,0.5); }
+</style>
+</helmet>
+
+<main style="min-height:100vh; background:#0B0E14; color:#9A948A; font-family:Barlow, sans-serif; display:flex; flex-direction:column;">
+
+  <div style="background:#0F1614; border-bottom:1px solid rgba(196,146,35,0.15); padding:18px 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+      <p style="margin:0; font-size:9px; font-weight:700; letter-spacing:0.3em; text-transform:uppercase; color:#C49223;">Penelope Sloan · Private</p>
+      <h1 style="margin:4px 0 0; font-family:'Playfair Display', serif; font-weight:500; font-size:20px; color:#FFFCF5;">Job Command Center</h1>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <sc-if value="{{savedFlash}}" hint-placeholder-val="{{false}}"><span style="font-size:10px; color:#4ade80;">✓ Saved</span></sc-if>
+      <button onClick="{{setTabPipeline}}" style="padding:8px 18px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:700; letter-spacing:0.08em; background:{{pipelineBtnBg}}; border:1px solid {{pipelineBtnBorder}}; color:{{pipelineBtnColor}};">Pipeline</button>
+      <button onClick="{{setTabOutreach}}" style="padding:8px 18px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:700; letter-spacing:0.08em; background:{{outreachBtnBg}}; border:1px solid {{outreachBtnBorder}}; color:{{outreachBtnColor}};">Outreach + Analysis</button>
+    </div>
+  </div>
+
+  <div style="flex:1; padding:24px 28px 60px;">
+
+    <sc-if value="{{isPipeline}}" hint-placeholder-val="{{true}}">
+      <div style="max-width:1000px; margin:0 auto;">
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:18px;">
+          <sc-for list="{{statusChips}}" as="s" hint-placeholder-count="6">
+            <button onClick="{{setFilter}}" data-status="{{s.id}}" style="display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:6px; cursor:pointer; background:{{s.bg}}; border:1px solid {{s.border}};">
+              <span style="font-size:11px; color:{{s.color}};">{{s.label}}</span>
+              <span style="font-size:9px; background:{{s.countBg}}; color:{{s.color}}; border-radius:99px; padding:1px 6px; font-weight:700;">{{s.count}}</span>
+            </button>
+          </sc-for>
+          <button onClick="{{openAddForm}}" style="margin-left:auto; padding:9px 18px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:700; letter-spacing:0.08em; background:linear-gradient(135deg,#C49223,#E5BD5C); border:none; color:#0B0E14;">+ Add Role</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <sc-for list="{{filteredJobs}}" as="job" hint-placeholder-count="2">
+            <div onClick="{{selectJob}}" data-id="{{job.id}}" style="background:#141a20; border:1px solid #242e38; border-radius:8px; padding:14px 18px; cursor:pointer; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+              <div style="flex:1; min-width:180px;">
+                <div style="font-size:13px; font-weight:700; color:#FFFCF5;">{{job.company}}</div>
+                <div style="font-size:11px; color:#9A948A;">{{job.role}}</div>
+              </div>
+              <div style="min-width:100px; font-size:10px; color:#C49223; font-weight:700;">{{job.fitScoreLabel}}</div>
+              <span style="padding:3px 10px; border-radius:99px; font-size:10px; font-weight:700; background:{{job.statusBg}}; color:{{job.statusColor}}; border:1px solid {{job.statusBorder}};">{{job.statusLabel}}</span>
+              <div style="font-size:10px; color:#E5BD5C; min-width:80px; text-align:right;">{{job.salary}}</div>
+            </div>
+          </sc-for>
+          <sc-if value="{{noJobs}}" hint-placeholder-val="{{false}}">
+            <div style="text-align:center; padding:40px; font-size:12px; color:#5a564e;">No roles here yet. Add one, or draft outreach in the Outreach tab.</div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isDetail}}" hint-placeholder-val="{{false}}">
+      <div style="max-width:720px; margin:0 auto;">
+        <button onClick="{{backToPipeline}}" style="background:none; border:none; color:#9A948A; cursor:pointer; font-size:11px; padding:0; margin-bottom:14px;">← Back</button>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+          <div>
+            <div style="font-size:22px; font-weight:700; color:#FFFCF5;">{{selectedJob.company}}</div>
+            <div style="font-size:13px; color:#9A948A;">{{selectedJob.role}}</div>
+            <div style="display:flex; gap:12px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+              <span style="padding:3px 10px; border-radius:99px; font-size:10px; font-weight:700; background:{{selectedJob.statusBg}}; color:{{selectedJob.statusColor}}; border:1px solid {{selectedJob.statusBorder}};">{{selectedJob.statusLabel}}</span>
+              <sc-if value="{{selectedJob.salary}}" hint-placeholder-val="{{false}}"><span style="font-size:11px; color:#E5BD5C;">{{selectedJob.salary}}</span></sc-if>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button onClick="{{editSelected}}" style="padding:7px 14px; border-radius:4px; cursor:pointer; font-size:11px; background:transparent; border:1px solid #242e38; color:#9A948A;">Edit</button>
+            <button onClick="{{sendToOutreach}}" style="padding:7px 14px; border-radius:4px; cursor:pointer; font-size:11px; background:transparent; border:1px solid rgba(196,146,35,0.5); color:#E5BD5C;">Draft Outreach →</button>
+            <button onClick="{{deleteSelected}}" style="padding:7px 14px; border-radius:4px; cursor:pointer; font-size:11px; background:transparent; border:1px solid rgba(248,113,113,0.4); color:#f87171;">Delete</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; font-size:12px;">
+          <div><span style="color:#5a564e;">Status:</span> <select data-id="{{selectedJob.id}}" onChange="{{changeStatus}}" style="background:#1a222a; border:1px solid #242e38; border-radius:4px; color:#FFFCF5; padding:5px 8px; margin-left:6px;">
+            <sc-for list="{{STATUSES}}" as="s" hint-placeholder-count="6">
+              <option value="{{s.id}}" selected="{{s.selectedFor(selectedJob)}}">{{s.label}}</option>
+            </sc-for>
+          </select></div>
+          <sc-if value="{{selectedJob.contact}}" hint-placeholder-val="{{false}}"><div><span style="color:#5a564e;">Contact:</span> {{selectedJob.contact}}</div></sc-if>
+          <sc-if value="{{selectedJob.platform}}" hint-placeholder-val="{{false}}"><div><span style="color:#5a564e;">Platform:</span> {{selectedJob.platform}}</div></sc-if>
+          <sc-if value="{{selectedJob.resumeVersion}}" hint-placeholder-val="{{false}}"><div><span style="color:#5a564e;">Resume:</span> {{selectedJob.resumeVersion}}</div></sc-if>
+          <sc-if value="{{selectedJob.url}}" hint-placeholder-val="{{false}}"><div><a href="{{selectedJob.url}}" target="_blank" rel="noreferrer">View listing →</a></div></sc-if>
+        </div>
+
+        <sc-if value="{{selectedJob.nextStep}}" hint-placeholder-val="{{false}}">
+          <div style="background:rgba(196,146,35,0.1); border:1px solid rgba(196,146,35,0.25); border-radius:6px; padding:10px 14px; margin-bottom:14px;">
+            <span style="font-size:9px; color:#C49223; letter-spacing:0.1em;">NEXT STEP </span>
+            <span style="font-size:12px; color:#FFFCF5;">{{selectedJob.nextStep}}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{selectedJob.notes}}" hint-placeholder-val="{{false}}">
+          <div style="background:#141a20; border:1px solid #242e38; border-radius:6px; padding:12px 14px;">
+            <div style="font-size:9px; color:#5a564e; letter-spacing:0.1em; margin-bottom:6px;">NOTES / JOB DESCRIPTION</div>
+            <div style="font-size:12px; line-height:1.7; color:#9A948A; white-space:pre-wrap;">{{selectedJob.notes}}</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isForm}}" hint-placeholder-val="{{false}}">
+      <div style="max-width:560px; margin:0 auto;">
+        <div style="font-size:15px; font-weight:700; color:#C49223; margin-bottom:16px;">{{formTitle}}</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+          <input name="company" value="{{formData.company}}" onChange="{{handleFormChange}}" placeholder="Company" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px;" />
+          <input name="role" value="{{formData.role}}" onChange="{{handleFormChange}}" placeholder="Role title" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px;" />
+          <input name="salary" value="{{formData.salary}}" onChange="{{handleFormChange}}" placeholder="Salary" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px;" />
+          <select name="status" value="{{formData.status}}" onChange="{{handleFormChange}}" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px;">
+            <sc-for list="{{STATUSES}}" as="s" hint-placeholder-count="6"><option value="{{s.id}}">{{s.label}}</option></sc-for>
+          </select>
+          <input name="platform" value="{{formData.platform}}" onChange="{{handleFormChange}}" placeholder="Platform / Source" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px;" />
+          <select name="resumeVersion" value="{{formData.resumeVersion}}" onChange="{{handleFormChange}}" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px;">
+            <option value="">Resume version...</option>
+            <sc-for list="{{RESUME_VERSIONS}}" as="rv" hint-placeholder-count="5"><option value="{{rv}}">{{rv}}</option></sc-for>
+          </select>
+          <input name="fitScore" value="{{formData.fitScore}}" onChange="{{handleFormChange}}" placeholder="Fit score (1-10)" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px;" />
+          <input name="contact" value="{{formData.contact}}" onChange="{{handleFormChange}}" placeholder="Contact" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px;" />
+          <input name="url" value="{{formData.url}}" onChange="{{handleFormChange}}" placeholder="Job URL" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px; grid-column:1 / -1;" />
+        </div>
+        <textarea name="notes" value="{{formData.notes}}" onChange="{{handleFormChange}}" rows="6" placeholder="Job description / notes" style="width:100%; background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:10px 12px; margin-bottom:12px; resize:vertical;"></textarea>
+        <input name="nextStep" value="{{formData.nextStep}}" onChange="{{handleFormChange}}" placeholder="Next step" style="width:100%; background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:9px 12px; margin-bottom:16px;" />
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button onClick="{{cancelForm}}" style="padding:9px 18px; border-radius:4px; cursor:pointer; font-size:11px; background:transparent; border:1px solid #242e38; color:#9A948A;">Cancel</button>
+          <button onClick="{{saveForm}}" disabled="{{formDisabled}}" style="padding:9px 18px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:700; background:linear-gradient(135deg,#C49223,#E5BD5C); border:none; color:#0B0E14; opacity:{{formOpacity}};">{{formSaveLabel}}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isOutreach}}" hint-placeholder-val="{{false}}">
+      <div style="max-width:760px; margin:0 auto;">
+        <p style="font-size:11px; color:#5a564e; margin:0 0 16px; line-height:1.6;">Paste a job description. Generate a fit score, tailored copy, and an outreach draft. Nothing sends automatically — copy and send it yourself, or save the role to your pipeline.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <input name="company" value="{{outreach.company}}" onChange="{{handleOutreachChange}}" placeholder="Company" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:10px 13px;" />
+          <input name="role" value="{{outreach.role}}" onChange="{{handleOutreachChange}}" placeholder="Role title" style="background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:10px 13px;" />
+        </div>
+        <textarea name="jd" value="{{outreach.jd}}" onChange="{{handleOutreachChange}}" rows="7" placeholder="Paste the full job description here..." style="width:100%; background:#1a222a; border:1px solid #242e38; border-radius:6px; color:#FFFCF5; font-size:12px; padding:12px 14px; resize:vertical; margin-bottom:14px;"></textarea>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+          <sc-for list="{{analysisButtons}}" as="a" hint-placeholder-count="5">
+            <button onClick="{{runAnalysis}}" data-key="{{a.id}}" disabled="{{outreachDisabled}}" style="padding:8px 16px; border-radius:6px; cursor:pointer; font-size:11px; background:transparent; border:1px solid {{a.borderColor}}; color:{{a.textColor}};">{{a.buttonLabel}}</button>
+          </sc-for>
+        </div>
+
+        <sc-for list="{{analysisResults}}" as="r" hint-placeholder-count="0">
+          <div style="background:#141a20; border:1px solid #242e38; border-radius:8px; padding:16px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <span style="font-size:11px; color:#C49223; font-weight:700; letter-spacing:0.06em;">{{r.label}}</span>
+              <button onClick="{{copyResult}}" data-key="{{r.id}}" style="padding:3px 10px; font-size:10px; background:transparent; border:1px solid #242e38; color:#9A948A; border-radius:4px; cursor:pointer;">{{r.copyLabel}}</button>
+            </div>
+            <div style="font-size:12px; color:#9A948A; line-height:1.8; white-space:pre-wrap;">{{r.text}}</div>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{hasAnyResult}}" hint-placeholder-val="{{false}}">
+          <div style="display:flex; justify-content:center; margin-top:10px;">
+            <button onClick="{{saveOutreachToPipeline}}" disabled="{{outreachSaved}}" style="padding:10px 22px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:700; background:{{outreachSaveBg}}; border:1px solid {{outreachSaveBorder}}; color:{{outreachSaveColor}};">{{outreachSaveLabel}}</button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+  </div>
+</main>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STATUSES = [
+  { id: "researching", label: "Researching", color: "#818cf8" },
+  { id: "applied", label: "Applied", color: "#60a5fa" },
+  { id: "interview", label: "Interview", color: "#f59e0b" },
+  { id: "offer", label: "Offer", color: "#4ade80" },
+  { id: "rejected", label: "Rejected", color: "#f87171" },
+  { id: "ghosted", label: "Ghosted", color: "#6b7280" },
+];
+const RESUME_VERSIONS = ["Master Resume", "Brand Strategy", "Marketing", "Design + Spatial", "AI Product Strategy"];
+const EMPTY_JOB = { id: "", company: "", role: "", salary: "", status: "researching", fitScore: "", url: "", contact: "", platform: "", notes: "", resumeVersion: "", dateAdded: "", nextStep: "" };
+
+const PENELOPE = `Penelope Sloan — Brand Strategist, Creative Director, AI Systems Builder, Serial Entrepreneur. 16 years, 250+ projects, 5 continents.
+Key wins: Reshaped Kabuni's business model (raised $7M, publicly listed). $140K record sale at Percy John Flooring. Winner Urban Barn's Next Top Designer. Featured Artist Hamptons Fine Art Fair.
+AI builds (shipped): The Pantheon (40-agent Claude Code ecosystem), Hermes (Telegram AI assistant), Scout + Soul Pipeline (autonomous lead-gen), Niche Audit Engine (Next.js + Supabase brand audit app), Fancy Text Studio, Rate Your Date, Stop the Circle Jerk, Alchemia.
+Skills: Brand Strategy, AI Product Strategy, Creative Direction, Interior/Spatial Design, Prompt Engineering, Agentic Systems, High-Ticket Sales + HNWIs, Event Production, Experiential Marketing, Investor Pitch Decks, Business Development.
+Founder: Penelope Sloan Creative (2009–). OPPORTUNI-P investment intelligence (2025–). Advisory: Infoquest (clients: VISA, Dubai Design Lab).
+Resume versions available: Master, Brand Strategy, Marketing, Design + Spatial, AI Product Strategy.`;
+
+const ANALYSES = [
+  { id: "fit", label: "FIT SCORE", buttonLabel: "◎ Fit Score", prompt: "Score this job fit 1-10 for the candidate ('FIT SCORE: X/10' on the first line), then the top 3 strengths to lead with and the top gap with how to address it." },
+  { id: "summary", label: "TAILORED SUMMARY", buttonLabel: "✦ Tailored Summary", prompt: "Write a 4-sentence professional summary tailored to this exact role, using keywords from the job description naturally." },
+  { id: "bullets", label: "TAILORED BULLETS", buttonLabel: "→ Tailored Bullets", prompt: "Write 6 resume bullets tailored to this role's requirements, drawing only from the candidate profile given. Metric-first where possible." },
+  { id: "outreach", label: "OUTREACH DRAFT", buttonLabel: "✉ Outreach Draft", prompt: "Write a first-touch outreach message (LinkedIn DM or email), max 130 words. Warm and human, not overly polished. Sign off 'In gratitude, Penelope'." },
+  { id: "strategy", label: "APPLY STRATEGY", buttonLabel: "◆ Apply Strategy", prompt: "Give a 4-step application strategy: which resume version to send (Master/Brand Strategy/Marketing/Design+Spatial/AI Product Strategy), who to contact, timing, and one insider angle." },
+];
+
+function uid() { return Math.random().toString(36).slice(2, 9); }
+function today() { return new Date().toISOString().slice(0, 10); }
+function statusInfo(id) { return STATUSES.find(s => s.id === id) || STATUSES[0]; }
+
+class Component extends DCLogic {
+  state = {
+    tab: "pipeline", jobs: [], filterStatus: "all", selectedJobId: null,
+    formData: null, formMode: null, savedFlash: false,
+    outreach: { company: "", role: "", jd: "", results: {}, running: null, saved: false },
+  };
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem("psc_job_pipeline");
+      if (raw) this.setState({ jobs: JSON.parse(raw) });
+    } catch (e) {}
+  }
+
+  persist(jobs) {
+    this.setState({ jobs });
+    try {
+      localStorage.setItem("psc_job_pipeline", JSON.stringify(jobs));
+      this.setState({ savedFlash: true });
+      clearTimeout(this._flashT);
+      this._flashT = setTimeout(() => this.setState({ savedFlash: false }), 1500);
+    } catch (e) {}
+  }
+
+  setTabPipeline = () => this.setState({ tab: "pipeline", selectedJobId: null, formMode: null });
+  setTabOutreach = () => this.setState({ tab: "outreach" });
+  backToPipeline = () => this.setState({ tab: "pipeline" });
+  setFilter = (e) => this.setState({ filterStatus: e.currentTarget.getAttribute("data-status") });
+
+  selectJob = (e) => this.setState({ selectedJobId: e.currentTarget.getAttribute("data-id"), tab: "detail" });
+
+  openAddForm = () => this.setState({ tab: "form", formMode: "add", formData: { ...EMPTY_JOB } });
+  editSelected = () => {
+    const job = this.state.jobs.find(j => j.id === this.state.selectedJobId);
+    this.setState({ tab: "form", formMode: "edit", formData: { ...job } });
+  };
+  cancelForm = () => this.setState({ tab: this.state.formMode === "edit" ? "detail" : "pipeline", formMode: null });
+
+  handleFormChange = (e) => {
+    const { name, value } = e.target;
+    this.setState(s => ({ formData: { ...s.formData, [name]: value } }));
+  };
+
+  saveForm = () => {
+    const f = this.state.formData;
+    if (!f.company || !f.role) return;
+    if (this.state.formMode === "edit") {
+      this.persist(this.state.jobs.map(j => j.id === f.id ? f : j));
+      this.setState({ tab: "detail" });
+    } else {
+      const job = { ...f, id: uid(), dateAdded: today() };
+      this.persist([job, ...this.state.jobs]);
+      this.setState({ tab: "pipeline" });
+    }
+  };
+
+  changeStatus = (e) => {
+    const id = e.currentTarget.getAttribute("data-id");
+    const status = e.target.value;
+    this.persist(this.state.jobs.map(j => j.id === id ? { ...j, status } : j));
+  };
+
+  deleteSelected = () => {
+    this.persist(this.state.jobs.filter(j => j.id !== this.state.selectedJobId));
+    this.setState({ tab: "pipeline", selectedJobId: null });
+  };
+
+  sendToOutreach = () => {
+    const job = this.state.jobs.find(j => j.id === this.state.selectedJobId);
+    this.setState({ tab: "outreach", outreach: { company: job.company, role: job.role, jd: job.notes || "", results: {}, running: null, saved: false } });
+  };
+
+  handleOutreachChange = (e) => {
+    const { name, value } = e.target;
+    this.setState(s => ({ outreach: { ...s.outreach, [name]: value } }));
+  };
+
+  runAnalysis = async (e) => {
+    const key = e.currentTarget.getAttribute("data-key");
+    const a = ANALYSES.find(x => x.id === key);
+    const { company, role, jd } = this.state.outreach;
+    if (!jd.trim()) return;
+    this.setState(s => ({ outreach: { ...s.outreach, running: key } }));
+    try {
+      const text = await window.claude.complete({
+        messages: [{ role: "user", content: `${a.prompt}\n\nCandidate profile:\n${PENELOPE}\n\nRole: ${role} at ${company}\n\nJob description:\n${jd}` }],
+        max_tokens: 900,
+      });
+      this.setState(s => ({ outreach: { ...s.outreach, running: null, results: { ...s.outreach.results, [key]: text } } }));
+    } catch (err) {
+      this.setState(s => ({ outreach: { ...s.outreach, running: null, results: { ...s.outreach.results, [key]: "Analysis failed. Try again." } } }));
+    }
+  };
+
+  copyResult = (e) => {
+    const key = e.currentTarget.getAttribute("data-key");
+    const text = this.state.outreach.results[key];
+    if (text && navigator.clipboard) navigator.clipboard.writeText(text);
+  };
+
+  saveOutreachToPipeline = () => {
+    const { company, role, jd, results } = this.state.outreach;
+    const fitMatch = (results.fit || "").match(/(\d+)\s*\/\s*10/);
+    const job = {
+      ...EMPTY_JOB, id: uid(), company: company || "Unknown", role: role || "Untitled role",
+      status: "researching", dateAdded: today(), notes: jd, fitScore: fitMatch ? fitMatch[1] : "",
+    };
+    this.persist([job, ...this.state.jobs]);
+    this.setState(s => ({ outreach: { ...s.outreach, saved: true } }));
+  };
+
+  renderVals() {
+    const { tab, jobs, filterStatus, selectedJobId, formData, formMode, savedFlash, outreach } = this.state;
+
+    const statusChips = [
+      { id: "all", label: "All", color: "#9A948A", bg: filterStatus === "all" ? "rgba(154,148,138,0.15)" : "transparent", border: filterStatus === "all" ? "rgba(154,148,138,0.4)" : "transparent", countBg: "rgba(154,148,138,0.15)", count: jobs.length },
+      ...STATUSES.map(s => ({
+        id: s.id, label: s.label, color: s.color,
+        bg: filterStatus === s.id ? s.color + "22" : "transparent",
+        border: filterStatus === s.id ? s.color + "66" : "transparent",
+        countBg: s.color + "22",
+        count: jobs.filter(j => j.status === s.id).length,
+      })),
+    ];
+
+    const filteredJobs = (filterStatus === "all" ? jobs : jobs.filter(j => j.status === filterStatus)).map(j => {
+      const s = statusInfo(j.status);
+      return { ...j, fitScoreLabel: j.fitScore ? `Fit ${j.fitScore}/10` : "", statusLabel: s.label, statusColor: s.color, statusBg: s.color + "1a", statusBorder: s.color + "44" };
+    });
+
+    const selJob = jobs.find(j => j.id === selectedJobId);
+    const selectedJob = selJob ? (() => { const s = statusInfo(selJob.status); return { ...selJob, statusLabel: s.label, statusColor: s.color, statusBg: s.color + "1a", statusBorder: s.color + "44" }; })() : {};
+
+    const analysisResults = ANALYSES.filter(a => outreach.results[a.id]).map(a => ({ id: a.id, label: a.label, text: outreach.results[a.id], copyLabel: "Copy" }));
+    const analysisButtons = ANALYSES.map(a => ({
+      id: a.id, buttonLabel: outreach.running === a.id ? "Running..." : a.buttonLabel,
+      borderColor: outreach.results[a.id] ? "rgba(196,146,35,0.5)" : "#242e38",
+      textColor: outreach.results[a.id] ? "#E5BD5C" : "#9A948A",
+    }));
+
+    return {
+      isPipeline: tab === "pipeline", isDetail: tab === "detail" && !!selJob, isForm: tab === "form", isOutreach: tab === "outreach",
+      pipelineBtnBg: tab === "pipeline" ? "rgba(196,146,35,0.15)" : "transparent",
+      pipelineBtnBorder: tab === "pipeline" ? "rgba(196,146,35,0.5)" : "#242e38",
+      pipelineBtnColor: tab === "pipeline" ? "#E5BD5C" : "#9A948A",
+      outreachBtnBg: tab === "outreach" ? "rgba(196,146,35,0.15)" : "transparent",
+      outreachBtnBorder: tab === "outreach" ? "rgba(196,146,35,0.5)" : "#242e38",
+      outreachBtnColor: tab === "outreach" ? "#E5BD5C" : "#9A948A",
+      savedFlash, setTabPipeline: this.setTabPipeline, setTabOutreach: this.setTabOutreach,
+      statusChips, setFilter: this.setFilter, openAddForm: this.openAddForm,
+      filteredJobs, noJobs: filteredJobs.length === 0, selectJob: this.selectJob,
+      backToPipeline: this.backToPipeline, selectedJob, editSelected: this.editSelected,
+      sendToOutreach: this.sendToOutreach, deleteSelected: this.deleteSelected,
+      changeStatus: this.changeStatus, STATUSES: STATUSES.map(s => ({ ...s, selectedFor: (j) => j && j.status === s.id })),
+      formTitle: formMode === "edit" ? "Edit Role" : "Add New Role",
+      formData: formData || EMPTY_JOB, handleFormChange: this.handleFormChange,
+      RESUME_VERSIONS, cancelForm: this.cancelForm, saveForm: this.saveForm,
+      formDisabled: !(formData && formData.company && formData.role),
+      formOpacity: (formData && formData.company && formData.role) ? 1 : 0.4,
+      formSaveLabel: formMode === "edit" ? "Save Changes" : "Add Role",
+      outreach, handleOutreachChange: this.handleOutreachChange,
+      analysisButtons, outreachDisabled: !outreach.jd.trim(),
+      runAnalysis: this.runAnalysis, analysisResults, copyResult: this.copyResult,
+      hasAnyResult: analysisResults.length > 0,
+      saveOutreachToPipeline: this.saveOutreachToPipeline,
+      outreachSaved: outreach.saved,
+      outreachSaveLabel: outreach.saved ? "✓ Saved to Pipeline" : "+ Save Role to Pipeline",
+      outreachSaveBg: outreach.saved ? "transparent" : "linear-gradient(135deg,#C49223,#E5BD5C)",
+      outreachSaveBorder: outreach.saved ? "#4ade80" : "transparent",
+      outreachSaveColor: outreach.saved ? "#4ade80" : "#0B0E14",
+    };
+  }
+}
+
+</script>
+</body>
+</html>
